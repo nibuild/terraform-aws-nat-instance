@@ -52,15 +52,11 @@ data "aws_ami" "this" {
   }
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*"]
+    values = ["al2023-ami-2*"]
   }
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
-  }
-  filter {
-    name   = "block-device-mapping.volume-type"
-    values = ["gp2"]
   }
 }
 
@@ -201,7 +197,8 @@ resource "aws_iam_role_policy" "eni" {
         {
             "Effect": "Allow",
             "Action": [
-                "ec2:AttachNetworkInterface"
+                "ec2:AttachNetworkInterface",
+                "ec2:ModifyInstanceAttribute"
             ],
             "Resource": "*"
         }

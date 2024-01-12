@@ -1,6 +1,6 @@
 # an example instance in the private subnet
 resource "aws_instance" "private_instance" {
-  ami                    = data.aws_ami.amazon_linux_2.id
+  ami                    = data.aws_ami.amazon_linux_2023.id
   instance_type          = "t3.micro"
   iam_instance_profile   = aws_iam_instance_profile.private_instance.name
   subnet_id              = module.vpc.private_subnets[0]
@@ -35,8 +35,8 @@ resource "aws_security_group" "private_instance" {
   }
 }
 
-# AMI of the latest Amazon Linux 2 
-data "aws_ami" "amazon_linux_2" {
+# AMI of the latest Amazon Linux 2023 (non-minimal)
+data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
   filter {
@@ -49,15 +49,11 @@ data "aws_ami" "amazon_linux_2" {
   }
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*"]
+    values = ["al2023-ami-2*"]
   }
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
-  }
-  filter {
-    name   = "block-device-mapping.volume-type"
-    values = ["gp2"]
   }
 }
 
