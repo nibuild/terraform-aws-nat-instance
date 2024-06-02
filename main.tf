@@ -223,7 +223,7 @@ resource "aws_iam_role_policy" "eni" {
             "Resource": "*",
             "Condition": {
 	      			"StringEquals": {
-  			    		"ec2:ResourceTag/Name": "${name_tag}"
+  			    		"ec2:ResourceTag/Name": "${local.common_tags[Name]}"
 				      }
 			      }
         },

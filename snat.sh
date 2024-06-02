@@ -3,7 +3,7 @@
 # Make sure we know which interface is the new wan
 EIPMAC="${eip_macaddress}"
 # Change mac address to ethernet device
-FINDEIP=$(grep -r ${EIPMAC} /sys/class/net/*/address)
+FINDEIP=$(grep -r $EIPMAC /sys/class/net/*/address)
 
 if [ $? -gt 0 ]; then
   echo "No interface loaded matching mac of $EIPMAC"
