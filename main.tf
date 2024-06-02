@@ -1,3 +1,15 @@
+data "aws_ec2_instance_type" "this" {
+  for_each      = toset(var.instance_types)
+  instance_type = each.value
+}
+
+locals {
+  instance_type_architectures    = { for f in var.instance_types : f => data.aws_ec2_instance_type.this[f].supported_architectures[0] }
+  architectures                  = distinct([for k, v in local.instance_type_architectures : v])
+  instance_type_launch_templates = { for f in var.instance_types : f => aws_launch_template.this[local.instance_type_architectures[f]].id }
+  resource_name                   = local.common_tags["Name"]
+}
+
 resource "aws_security_group" "this" {
   name_prefix = var.name
   vpc_id      = var.vpc_id
@@ -40,11 +52,14 @@ resource "aws_route" "this" {
 
 # AMI of the latest Amazon Linux 2 
 data "aws_ami" "this" {
+  for_each = toset(local.architectures)
+
   most_recent = true
   owners      = ["amazon"]
+
   filter {
     name   = "architecture"
-    values = ["x86_64"]
+    values = [each.value]
   }
   filter {
     name   = "root-device-type"
@@ -52,21 +67,19 @@ data "aws_ami" "this" {
   }
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*"]
+    values = ["al2023-ami-2*"]
   }
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-  filter {
-    name   = "block-device-mapping.volume-type"
-    values = ["gp2"]
-  }
 }
 
 resource "aws_launch_template" "this" {
-  name_prefix = var.name
-  image_id    = var.image_id != "" ? var.image_id : data.aws_ami.this.id
+  for_each = toset(local.architectures)
+
+  name_prefix = "${var.name}-${each.value}-"
+  image_id    = var.image_id != "" ? var.image_id : data.aws_ami.this[each.value].id
   key_name    = var.key_name
 
   iam_instance_profile {
@@ -101,7 +114,7 @@ resource "aws_launch_template" "this" {
         },
         {
           path : "/opt/nat/snat.sh",
-          content : file("${path.module}/snat.sh"),
+          content : templatefile("${path.module}/snat.sh", { eip_macaddress = aws_network_interface.this.mac_address}),
           permissions : "0755",
         },
         {
@@ -133,13 +146,17 @@ resource "aws_autoscaling_group" "this" {
     }
     launch_template {
       launch_template_specification {
-        launch_template_id = aws_launch_template.this.id
+        launch_template_id = local.instance_type_launch_templates[var.instance_types[0]]
         version            = "$Latest"
       }
       dynamic "override" {
         for_each = var.instance_types
         content {
           instance_type = override.value
+          launch_template_specification {
+            launch_template_id = local.instance_type_launch_templates[override.value]
+            version            = "$Latest"
+          }
         }
       }
     }
@@ -201,9 +218,15 @@ resource "aws_iam_role_policy" "eni" {
         {
             "Effect": "Allow",
             "Action": [
-                "ec2:AttachNetworkInterface"
+                "ec2:AttachNetworkInterface",
+                "ec2:ModifyInstanceAttribute"
             ],
-            "Resource": "*"
+            "Resource": "*",
+            "Condition": {
+              "StringEquals": {
+                "ec2:ResourceTag/Name": "${local.resource_name}"
+              }
+            }
         }
     ]
 }
