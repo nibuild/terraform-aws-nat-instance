@@ -113,7 +113,7 @@ resource "aws_launch_template" "this" {
         },
         {
           path : "/opt/nat/snat.sh",
-          content : file("${path.module}/snat.sh"),
+          content : templatefile("${path.module}/snat.sh", { eip_macaddress = aws_network_interface.this.mac_address}),
           permissions : "0755",
         },
         {
@@ -218,7 +218,19 @@ resource "aws_iam_role_policy" "eni" {
             "Effect": "Allow",
             "Action": [
                 "ec2:AttachNetworkInterface",
-                "ec2:ModifyInstanceAttribute"
+                "ec2:ModifyInstanceAttribute",
+            ],
+            "Resource": "*",
+            "Condition": {
+	      			"StringEquals": {
+  			    		"ec2:ResourceTag/Name": "${name_tag}"
+				      }
+			      }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeNetworkInterfaces"
             ],
             "Resource": "*"
         }
