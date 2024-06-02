@@ -7,6 +7,7 @@ locals {
   instance_type_architectures    = { for f in var.instance_types : f => data.aws_ec2_instance_type.this[f].supported_architectures[0] }
   architectures                  = distinct([for k, v in local.instance_type_architectures : v])
   instance_type_launch_templates = { for f in var.instance_types : f => aws_launch_template.this[local.instance_type_architectures[f]].id }
+  resource_name                   = local.common_tags["Name"]
 }
 
 resource "aws_security_group" "this" {
@@ -218,21 +219,14 @@ resource "aws_iam_role_policy" "eni" {
             "Effect": "Allow",
             "Action": [
                 "ec2:AttachNetworkInterface",
-                "ec2:ModifyInstanceAttribute",
+                "ec2:ModifyInstanceAttribute"
             ],
             "Resource": "*",
             "Condition": {
-	      			"StringEquals": {
-  			    		"ec2:ResourceTag/Name": "${local.common_tags[Name]}"
-				      }
-			      }
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:DescribeNetworkInterfaces"
-            ],
-            "Resource": "*"
+              "StringEquals": {
+                "ec2:ResourceTag/Name": "${local.resource_name}"
+              }
+            }
         }
     ]
 }
