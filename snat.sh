@@ -49,7 +49,6 @@ while [ $EXTWORKING -eq 0 ]; do
   # switch the default route to new gateway
   for CGW in $GWS; do
     echo "Removing default route through $CGW"
-    /usr/sbin/ip ro del default dev "$CGW"
     if ! /usr/sbin/ip ro del default dev "$CGW"; then
       echo "Failed removing default gw through $CGW"
     fi
@@ -59,7 +58,7 @@ while [ $EXTWORKING -eq 0 ]; do
       "/run/systemd/network/70-$CGW.network.d/eni.conf"
   done
   # Check for internet is working
-  if ! curl --retry 2 https://google.com; then
+  if curl --retry 2 https://google.com; then
     EXTWORKING=1
     echo "Internet online"
   else
