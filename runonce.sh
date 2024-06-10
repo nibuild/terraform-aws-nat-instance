@@ -3,6 +3,7 @@
 # Get some needed informaiton
 AWS_REGION=$(/usr/bin/ec2-metadata -z | sed 's/placement: \(.*\).$/\1/')
 INSTANCE_ID=$(/usr/bin/ec2-metadata -i | cut -d' ' -f2)
+
 # Disable Source/Destination Check for the instance default interface
 aws ec2 modify-instance-attribute --region "$AWS_REGION" --instance-id "$INSTANCE_ID" --no-source-dest-check
 
@@ -21,11 +22,9 @@ while true; do
   attempt=$((attempt + 1))
 
   if [ "$attempt" -ge "$max_attempts" ]; then
-    echo "Maximum attempts reached. Initiating reboot."
-    # ensure this runs after reboot
-    echo "@reboot root /opt/nat/runonce.sh" | tee -a /etc/crontab
+    echo "Maximum attempts reached. Initiating shutdown to spin up a new instance."
     # reboot to try again
-    reboot
+    shutdown -h now
     break
   fi
 
