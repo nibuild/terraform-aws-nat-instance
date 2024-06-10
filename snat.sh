@@ -5,9 +5,12 @@
 EIPMAC="${eip_macaddress}"
 
 # Change mac address to ethernet device
-if ! FINDEIP=$(grep -r "$EIPMAC" /sys/class/net/*/address); then
+FINDEIP=$(grep -r "$EIPMAC" /sys/class/net/*/address)
+if [ $? -gt 0 ] ; then
   echo "No interface loaded matching mac of $EIPMAC"
   echo "Rebooting to try again"
+  logger "No interface found matching $EIPMAC, rebooting in 60 seconds"
+  sleep 60
   reboot
 fi
 
