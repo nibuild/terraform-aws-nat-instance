@@ -1,48 +1,85 @@
 #!/bin/bash -x
 
 # Make sure we know which interface is the new wan
+# shellcheck disable=SC2154
 EIPMAC="${eip_macaddress}"
-# Change mac address to ethernet device
-FINDEIP=$(grep -r $EIPMAC /sys/class/net/*/address)
 
-if [ $? -gt 0 ]; then
+# Change mac address to ethernet device
+if ! FINDEIP=$(grep -r "$EIPMAC" /sys/class/net/*/address); then
   echo "No interface loaded matching mac of $EIPMAC"
   echo "Rebooting to try again"
   reboot
 fi
-EIPDEV=$(echo $FINDEIP | cut -d/ -f5)
+
+EIPDEV=$(echo "$FINDEIP" | cut -d/ -f5)
 echo "Output eth is $EIPDEV"
 
-#  make this a nat instance
-echo "net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-
 # Get any route that is not our new interface
-GWS=$(ip ro | grep default | grep -v $EIPDEV | cut -d' ' -f5)
+GWS=$(ip ro | grep default | grep -v "$EIPDEV" | cut -d' ' -f5)
+INTS=$(ip link show | grep -E '^[0-9]*: ' | grep -Ev "docker|lo" | cut -d' ' -f2 | sed -e 's/:$//g')
 
 # Configure iptables to forward packets - only run on first boot
 if [ ! -f /.configured ]; then
-  sudo iptables -t nat -A POSTROUTING -o $EIPDEV -j MASQUERADE
-  for CGW in $GWS; do
-    sudo iptables -A FORWARD -i $CGW -o $EIPDEV -j ACCEPT
-    sudo iptables -A FORWARD -i $CGW -o $EIPDEV -m state --state RELATED,ESTABLISHED -j ACCEPT
+  #  make this a nat instance
+  echo "net.ipv4.ip_forward = 1" | tee -a /etc/sysctl.conf
+  sysctl -p
+  # Setup masquerade on the EIP device
+  iptables -t nat -A POSTROUTING -o "$EIPDEV" -j MASQUERADE
+  # Allow forwarding traffic from all interfaces
+  for CINT in $INTS; do
+    iptables -A FORWARD -i "$CINT" -o "$EIPDEV" -j ACCEPT
+    iptables -A FORWARD -i "$CINT" -o "$EIPDEV" -m state --state RELATED,ESTABLISHED -j ACCEPT
   done
-  sudo iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
-  sudo service iptables save
-  
+  # Disable everything else
+  iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited
+  service iptables save
+
   # ensure these settings persist across reboots
-  echo "@reboot root iptables-restore < /etc/sysconfig/iptables" | sudo tee -a /etc/crontab
+  echo "@reboot root iptables-restore < /etc/sysconfig/iptables" | tee -a /etc/crontab
   # Touch our file so we don't duplicate all the rules
   touch /.configured
 fi
 
-# switch the default route to new gateway
-for CGW in $GWS; do
-ip route del default dev $CGW
-done
+EXTWORKING=0
+EXTTRYS=0
+while [ $EXTWORKING -eq 0 ]; do
+  # switch the default route to new gateway
+  for CGW in $GWS; do
+    echo "Removing default route through $CGW"
+    /usr/sbin/ip ro del default dev "$CGW"
+    if ! /usr/sbin/ip ro del default dev "$CGW"; then
+      echo "Failed removing default gw through $CGW"
+    fi
+    # Modify the generated systemd eni config to disable gateway as a safeguard
+    sed --in-place -e 's/RouteMetric=512/RouteMetric=1522/g' \
+      -e 's/UseGateway=true/UseGateway=false/g' \
+      "/run/systemd/network/70-$CGW.network.d/eni.conf"
+  done
+  # Check for internet is working
+  if ! curl --retry 2 https://google.com; then
+    EXTWORKING=1
+    echo "Internet online"
+  else
+    EXTTRYS=$((EXTTRYS + 1))
+  fi
 
-# Check for internet
-curl --retry 10 https://google.com
+  if [ $EXTTRYS -ge 5 ]; then
+    echo "Failed to bring network up, rebooting."
+    reboot
+  fi
+done
 
 # re-establish connections
 systemctl restart amazon-ssm-agent
+
+# Run any defined startup scripts
+if [ -d /opt/nat/startup.d ]; then
+  # If cd'ing to the directy fails just exit cleanly
+  cd /opt/nat/startup.d || exit 0
+  for CSCRIPT in *.sh; do
+    bash "$CSCRIPT"
+  done
+fi
+
+# Exit cleanly
+exit 0
