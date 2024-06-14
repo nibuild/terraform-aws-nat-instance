@@ -7,7 +7,7 @@ locals {
   instance_type_architectures    = { for f in var.instance_types : f => data.aws_ec2_instance_type.this[f].supported_architectures[0] }
   architectures                  = distinct([for k, v in local.instance_type_architectures : v])
   instance_type_launch_templates = { for f in var.instance_types : f => aws_launch_template.this[local.instance_type_architectures[f]].id }
-  resource_name                   = local.common_tags["Name"]
+  resource_name                  = local.common_tags["Name"]
 }
 
 resource "aws_security_group" "this" {
@@ -118,7 +118,7 @@ resource "aws_launch_template" "this" {
         },
         {
           path : "/opt/nat/snat.sh",
-          content : templatefile("${path.module}/snat.sh", { eip_macaddress = aws_network_interface.this.mac_address}),
+          content : templatefile("${path.module}/snat.sh", { eip_macaddress = aws_network_interface.this.mac_address }),
           permissions : "0755",
         },
         {
