@@ -14,6 +14,11 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      # required to push a commit
+      contents: write
+      # required to create a pull request
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
