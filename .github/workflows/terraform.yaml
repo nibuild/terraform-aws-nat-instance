@@ -23,6 +23,8 @@ jobs:
       - uses: hashicorp/setup-terraform@v2
       - run: make
       - uses: int128/update-generated-files-action@v2
+        with:
+            token: ${{ secrets.DEPLOY_TOKEN }}
 
   docs:
     runs-on: ubuntu-latest
@@ -31,3 +33,5 @@ jobs:
       - uses: actions/checkout@v3
       - uses: terraform-docs/gh-actions@v1
       - uses: int128/update-generated-files-action@v2
+        with:
+          token: ${{ secrets.DEPLOY_TOKEN }}
