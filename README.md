@@ -1,4 +1,4 @@
-# terraform-aws-nat-instance [![CircleCI](https://circleci.com/gh/int128/terraform-aws-nat-instance.svg?style=shield)](https://circleci.com/gh/int128/terraform-aws-nat-instance)
+# terraform-aws-nat-instance ![Terraform Validation](https://github.com/nibuild/terraform-aws-nat-instance/actions/workflows/terraform.yml/badge.svg?branch=master)
 
 This is a Terraform module which provisions a NAT instance.
 
@@ -10,8 +10,10 @@ Features:
 - Fixed source IP address by reattaching ENI
 - Supporting Systems Manager Session Manager
 - Compatible with workspaces
+- Additional security using iptables
+- Supports additional scripting
 
-Terraform 0.12 or later is required.
+Terraform >= 0.12 or OpenTufo is required.
 
 **Warning**: Generally you should use a NAT gateway. This module provides a very low cost solution for testing purpose.
 
@@ -33,7 +35,7 @@ module "vpc" {
 }
 
 module "nat" {
-  source = "int128/nat-instance/aws"
+  source = "git::https://github.com/nibuild/terraform-aws-nat-instance.git"
 
   name                        = "main"
   vpc_id                      = module.vpc.vpc_id
@@ -78,16 +80,22 @@ You can set `image_id` for a custom image.
 
 The instance will execute [`runonce.sh`](runonce.sh) and [`snat.sh`](snat.sh) to enable NAT as follows:
 
-1. Attach the ENI to `eth1`.
-1. Set the kernel parameters for IP forwarding and masquerade.
-1. Switch the default route to `eth1`.
+1. Attach the ENI to the instance.
+2. Set the kernel parameters for IP forwarding and masquerade.
+3. Switch the default route to the new adapter.
 
 
 ## Configuration
 
 ### User data
 
-You can set additional `write_files` and `runcmd` section. For example,
+Additional scripting and configuration can be done using `write_files` with `runcmd` or the script execution section of `snat.sh`. 
+
+`runcmd` is great if you just need to execute a script on the first bootup of the nat instance.
+
+`startup.d` is great if you have the need to run a script on every bootup of the instance.
+
+Example using `runcmd` with cloudinit:
 
 ```tf
 module "nat" {
@@ -100,6 +108,20 @@ module "nat" {
   ]
   user_data_runcmd = [
     ["/opt/nat/run.sh"],
+  ]
+}
+```
+
+Example using `/opt/nat/startup.d/` scripts:
+
+```tf
+module "nat" {
+  user_data_write_files = [
+    {
+      path : "/opt/nat/startup.d/start_docker.sh",
+      content : file("./scripts/start_docker.sh"),
+      permissions : "0755",
+    },
   ]
 }
 ```
@@ -129,7 +151,11 @@ resource "aws_security_group_rule" "nat_ssh" {
 
 ## Migration guide
 
-### Upgrade to v2 from v1
+### Migrating from `int128/terraform-aws-nat-instance`
+
+This module is a fork and extension of the work done by [int128](https://github.com/int128/terraform-aws-nat-instance) but is also a drop in replacement. The biggest changes to be aware of are the use of iptables in the OS and major difference in how the ENI is brought online and handled in case of failures. We now determine interface names dynamically based on the eni mac address and additional interfaces found on the system.
+
+### Upgrade to v2 from int128 v1
 
 This module no longer creates an EIP since v2.
 
