@@ -10,15 +10,14 @@ on:
       - '**/*.tf'
       - '**/.terraform.*'
 
+permissions:
+  contents: write
+  pull-requests: write
+  
 jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      # required to push a commit
-      contents: write
-      # required to create a pull request
-      pull-requests: write
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
@@ -28,11 +27,6 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      # required to push a commit
-      contents: write
-      # required to create a pull request
-      pull-requests: write
     steps:
       - uses: actions/checkout@v3
       - uses: terraform-docs/gh-actions@v1
