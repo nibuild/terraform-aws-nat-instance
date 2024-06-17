@@ -24,8 +24,6 @@ jobs:
       - run: sudo chmod -R ugo+rwX .
       - run: make
       - uses: int128/update-generated-files-action@v2
-        with:
-            token: ${{ secrets.DEPLOY_TOKEN }}
 
   docs:
     runs-on: ubuntu-latest
@@ -35,5 +33,3 @@ jobs:
       - uses: terraform-docs/gh-actions@v1
       - run: sudo chmod -R ugo+rwX .
       - uses: int128/update-generated-files-action@v2
-        with:
-          token: ${{ secrets.DEPLOY_TOKEN }}
