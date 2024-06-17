@@ -1,4 +1,4 @@
-# terraform-aws-nat-instance ![Terraform Validation](https://github.com/nibuild/terraform-aws-nat-instance/actions/workflows/terraform.yml/badge.svg?branch=master)
+# terraform-aws-nat-instance ![Terraform Validation](https://github.com/nibuild/terraform-aws-nat-instance/actions/workflows/terraform.yaml/badge.svg?branch=master)
 
 This is a Terraform module which provisions a NAT instance.
 
