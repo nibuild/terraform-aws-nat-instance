@@ -21,6 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
+      - run: sudo chmod -R ugo+rwX .
       - run: make
       - uses: int128/update-generated-files-action@v2
         with:
@@ -32,6 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: terraform-docs/gh-actions@v1
+      - run: sudo chmod -R ugo+rwX .
       - uses: int128/update-generated-files-action@v2
         with:
           token: ${{ secrets.DEPLOY_TOKEN }}
