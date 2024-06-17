@@ -52,10 +52,6 @@ while [ $EXTWORKING -eq 0 ]; do
     if ! /usr/sbin/ip ro del default dev "$CGW"; then
       echo "Failed removing default gw through $CGW"
     fi
-    # Modify the generated systemd eni config to disable gateway as a safeguard
-    # sed --in-place -e 's/RouteMetric=512/RouteMetric=1522/g' \
-    #   -e 's/UseGateway=true/UseGateway=false/g' \
-    #   "/run/systemd/network/70-$CGW.network.d/eni.conf"
   done
   # Check for internet is working
   if curl --retry 2 https://google.com; then
