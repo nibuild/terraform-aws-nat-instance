@@ -9,6 +9,11 @@ output "eni_private_ip" {
   value = tolist(aws_network_interface.this.private_ips)[0]
 }
 
+output "eip_ip" {
+  description = "Created AWS EIP if enabled"
+  value = one(aws_eip.nat[*].public_ip)
+}
+
 output "sg_id" {
   description = "ID of the security group of the NAT instance"
   value       = aws_security_group.this.id

@@ -192,7 +192,7 @@ resource "aws_iam_instance_profile" "this" {
 
 resource "aws_eip" "nat" {
   count = var.create_eip ? 1 : 0
-  network_interface = module.nat.eni_id
+  network_interface = aws_network_interface.this.id 
   tags = {
     "Name" = format("%s-eip", local.resource_name)
   }

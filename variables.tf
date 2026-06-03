@@ -75,7 +75,7 @@ variable "user_data_runcmd" {
 variable "create_eip" {
   description = "Should the module create an EIP"
   type        = bool
-  default     = true
+  default     = false
 }
 
 locals {
