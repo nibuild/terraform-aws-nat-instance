@@ -216,6 +216,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_capacity_rebalance"></a> [capacity\_rebalance](#input\_capacity\_rebalance) | attempts to replace Spot Instances before they are interrupted. | `bool` | `true` | no |
 | <a name="input_create_eip"></a> [create\_eip](#input\_create\_eip) | Should the module create an EIP | `bool` | `false` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Enable or not costly resources | `bool` | `true` | no |
 | <a name="input_image_id"></a> [image\_id](#input\_image\_id) | AMI of the NAT instance. Default to the latest Amazon Linux 2 | `string` | `""` | no |
