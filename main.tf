@@ -142,6 +142,7 @@ resource "aws_autoscaling_group" "this" {
   min_size            = var.enabled ? 1 : 0
   max_size            = 1
   vpc_zone_identifier = [var.public_subnet]
+  capacity_reblance   = var.use_spot_instance ? var.capacity_rebalance : false
 
   mixed_instances_policy {
     instances_distribution {

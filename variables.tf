@@ -90,6 +90,12 @@ variable "create_eip" {
   default     = false
 }
 
+variable "capacity_rebalance" {
+  description = "attempts to replace Spot Instances before they are interrupted."
+  type        = bool
+  default     = true
+}
+
 locals {
   // Merge the default tags and user-specified tags.
   // User-specified tags take precedence over the default.
