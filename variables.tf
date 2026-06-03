@@ -48,6 +48,18 @@ variable "use_spot_instance" {
   default     = true
 }
 
+variable "spot_allocation_strategy" {
+  description = "Strategy to use when launching Spot instances. Valid values: lowest-price, capacity-optimized, capacity-optimized-prioritized, price-capacity-optimized"
+  type        = string
+  default     = "price-capacity-optimized"
+}
+
+variable "spot_instance_pools" {
+  description = "Number of Spot pools per availability zone to allocate capacity. Active only when spot_allocation_strategy is set to lowest-price"
+  type        = number
+  default     = null
+}
+
 variable "key_name" {
   description = "Name of the key pair for the NAT instance. You can set this to assign the key pair to the NAT instance"
   type        = string

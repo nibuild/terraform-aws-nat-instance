@@ -147,8 +147,8 @@ resource "aws_autoscaling_group" "this" {
     instances_distribution {
       on_demand_base_capacity                  = var.use_spot_instance ? 0 : 1
       on_demand_percentage_above_base_capacity = var.use_spot_instance ? 0 : 100
-      spot_allocation_strategy                 = "lowest-price"
-      spot_instance_pools                      = 1
+      spot_allocation_strategy                 = var.spot_allocation_strategy
+      spot_instance_pools                      = var.spot_allocation_strategy == "lowest-price" ? var.spot_instance_pools : null
       on_demand_allocation_strategy            = "lowest-price"
     }
     launch_template {
