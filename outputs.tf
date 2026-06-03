@@ -11,7 +11,7 @@ output "eni_private_ip" {
 
 output "eip_ip" {
   description = "Created AWS EIP if enabled"
-  value = one(aws_eip.nat[*].public_ip)
+  value       = one(aws_eip.nat[*].public_ip)
 }
 
 output "sg_id" {
