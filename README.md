@@ -216,7 +216,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_create_eip"></a> [create\_eip](#input\_create\_eip) | Should the module create an EIP | `bool` | `true` | no |
+| <a name="input_create_eip"></a> [create\_eip](#input\_create\_eip) | Should the module create an EIP | `bool` | `false` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Enable or not costly resources | `bool` | `true` | no |
 | <a name="input_image_id"></a> [image\_id](#input\_image\_id) | AMI of the NAT instance. Default to the latest Amazon Linux 2 | `string` | `""` | no |
 | <a name="input_instance_types"></a> [instance\_types](#input\_instance\_types) | Candidates of spot instance type for the NAT instance. This is used in the mixed instances policy | `list(string)` | <pre>[<br/>  "t4g.nano",<br/>  "t4g.micro",<br/>  "t4g.small"<br/>]</pre> | no |
@@ -236,6 +236,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_eip_ip"></a> [eip\_ip](#output\_eip\_ip) | Created AWS EIP if enabled |
 | <a name="output_eni_id"></a> [eni\_id](#output\_eni\_id) | ID of the ENI for the NAT instance |
 | <a name="output_eni_private_ip"></a> [eni\_private\_ip](#output\_eni\_private\_ip) | Private IP of the ENI for the NAT instance |
 | <a name="output_iam_role_name"></a> [iam\_role\_name](#output\_iam\_role\_name) | Name of the IAM role for the NAT instance |
