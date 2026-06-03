@@ -147,6 +147,9 @@ resource "aws_autoscaling_group" "this" {
     instances_distribution {
       on_demand_base_capacity                  = var.use_spot_instance ? 0 : 1
       on_demand_percentage_above_base_capacity = var.use_spot_instance ? 0 : 100
+      spot_allocation_strategy                 = "lowest-price"
+      spot_instance_pools                      = 1
+      on_demand_allocation_strategy            = "lowest-price"
     }
     launch_template {
       launch_template_specification {
@@ -185,6 +188,14 @@ resource "aws_iam_instance_profile" "this" {
   role        = aws_iam_role.this.name
 
   tags = local.common_tags
+}
+
+resource "aws_eip" "nat" {
+  count = var.create_eip ? 1 : 0
+  network_interface = module.nat.eni_id
+  tags = {
+    "Name" = format("%s-eip", local.resource_name)
+  }
 }
 
 resource "aws_iam_role" "this" {

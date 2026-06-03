@@ -39,7 +39,7 @@ variable "image_id" {
 variable "instance_types" {
   description = "Candidates of spot instance type for the NAT instance. This is used in the mixed instances policy"
   type        = list(string)
-  default     = ["t4g.nano", "t3.nano", "t3a.nano"]
+  default     = ["t4g.nano", "t4g.micro", "t4g.small"]
 }
 
 variable "use_spot_instance" {
@@ -70,6 +70,12 @@ variable "user_data_runcmd" {
   description = "Additional runcmd section of cloud-init"
   type        = list(list(string))
   default     = []
+}
+
+variable "create_eip" {
+  description = "Should the module create an EIP"
+  type        = bool
+  default     = true
 }
 
 locals {
